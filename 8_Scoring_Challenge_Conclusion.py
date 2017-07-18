@@ -22,7 +22,7 @@ gameDisplay = pygame.display.set_mode((display_width,display_height))
 pygame.display.set_caption('Race Game')
 clock = pygame.time.Clock()
 
-carImg = pygame.image.load('/home/pi/gametuts/images/car_01.png')
+carImg = pygame.image.load("C:/Users/jlyell/PycharmProjects/gametuts/images/car_01.png")
 
 def obstacles_avoided(count):
 	font = pygame.font.SysFont(None, 25)
@@ -33,7 +33,7 @@ def roadlines(roady):
 	pygame.draw.rect(gameDisplay, white, [(display_width/2 - 5), roady, 10, 100])
 	
 def roadlines2(roady):
-	pygame.draw.rect(gameDisplay, white, [(display_width/2 - 5), roady, 10, 100])
+    pygame.draw.rect(gameDisplay, white, [(display_width/2 - 5), roady, 10, 100])
 	
 # Define obstacle object
 def obstacle(obx, oby, obw, obh, colour):
