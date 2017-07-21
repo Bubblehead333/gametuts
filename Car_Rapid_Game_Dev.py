@@ -6,20 +6,23 @@ import pygame, math, sys
 from pygame.locals import *
 screen = pygame.display.set_mode((1024, 768))
 clock = pygame.time.Clock()
+white = (255,255,255)
+
+
 
 class CarSprite(pygame.sprite.Sprite):
-	MAX_FORWARD_SPEED = 15
+	MAX_FORWARD_SPEED = 25
 	MAX_REVERSE_SPEED = 5
-	ACCELERATION = 20
-	TURN_SPEED = 50
-	
+	ACCELERATION = 5
+	TURN_SPEED = 20
+
 	def __init__(self, image, position):
 		pygame.sprite.Sprite.__init__(self)
 		self.src_image = pygame.image.load(image)
 		self.position = position
 		self.speed = self.direction = 0
 		self.k_left = self.k_right = self.k_down = self.k_up = 0
-		
+
 	def update(self, deltat):
 		# SIMULATION
 		self.speed += (self.k_up +self.k_down)
@@ -39,11 +42,21 @@ class CarSprite(pygame.sprite.Sprite):
 
 # CREATE A CAR AND TUN
 rect = screen.get_rect()
-car = CarSprite('/home/pi/gametuts/images/car_01.png', rect.center)
+# RPi3
+# car = CarSprite('/home/pi/gametuts/images/car_01.png', rect.center)
+
+#EQPC
+car = CarSprite('C:/Users/jlyell/PycharmProjects/gametuts/images/blueBike2.png', rect.center)
+bike = CarSprite('C:/Users/jlyell/PycharmProjects/gametuts/images/purpleBike2SM.png', rect.center)
+
 car_group = pygame.sprite.RenderPlain(car)
+bike_group = pygame.sprite.RenderPlain(bike)
+
 while 1:
+
 	#USER INPUT
 	deltat = clock.tick(30)
+
 	for event in pygame.event.get():
 		if not hasattr(event, 'key'): continue
 		down = event.type == KEYDOWN
@@ -52,12 +65,22 @@ while 1:
 		elif event.key == K_UP: car.k_up = down * 2
 		elif event.key == K_DOWN: car.k_down = down * -2
 		elif event.key == K_ESCAPE: sys.exit(0)
+
+		elif event.key == K_d: bike.k_right = down * -5
+		elif event.key == K_a: bike.k_left = down * 5
+		elif event.key == K_w: bike.k_up = down * 2
+		elif event.key == K_s: bike.k_down = down * -2
 		
 	#RENDERING
-	screen.fill((0,0,0))
+
+	screen.fill(white)
 	car_group.update(deltat)
+	bike_group.update(deltat)
+
 	car_group.draw(screen)
+	bike_group.draw(screen)
+
 	pygame.display.flip()
-		
+
 	
 	

@@ -175,7 +175,7 @@ def game(folder = "data"):
             self.radius = max(self.rect.width, self.rect.height) / 2.0
             self.dx = 0   # wait at the beginning
             self.dy = 0            
-            self.waittime = Bird.waittime # 1.0 # one second
+            self.waittime = Bird.waittime # 1.0 # one seconda
             self.lifetime = 0.0
             self.waiting = True
             self.rect.center = (-100,-100) # out of visible screen
@@ -191,7 +191,6 @@ def game(folder = "data"):
             self.boostmax = 0.9 # max seconds of "fuel" for flying upward
             self.boostmin = 0.4 # min seconds of "fuel" for flying upward
             self.boosttime = 0.0 # time (fuel) remaining
-            warpsound.play()
             for _ in range(8):
                 BlueFragment(self.pos) # blue Frags
       
