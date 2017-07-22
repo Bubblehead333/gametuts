@@ -292,7 +292,7 @@ def game(folder = "data"):
             Lifebar(self)
             self.cooldowntime = 0.08 #seconds
             self.cooldown = 0.0
-            self.damage = 5 # how many damage one bullet inflict
+            self.damage = 50 # how many damage one bullet inflict
             self.shots = 0
             self.radius = self.image.get_width() / 2.0
             self.mass = 400.0
