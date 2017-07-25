@@ -42,7 +42,7 @@ class VehicleSprite(pygame.sprite.Sprite):
 		if self.speed < -self.MAX_REVERSE_SPEED:
 			self.speed = -self.MAX_REVERSE_SPEED
 			
-		# Degrees sprite is facing
+		# Degrees sprite is facing (direction)
 		self.direction += (self.k_right + self.k_left)
 		x, y = self.position
 		rad = self.direction * math.pi / 180
@@ -52,6 +52,7 @@ class VehicleSprite(pygame.sprite.Sprite):
 		self.image = pygame.transform.rotate(self.src_image, self.direction)
 		self.rect = self.image.get_rect()
 		self.rect.center = self.position
+		
 		
 class Projectile(pygame.sprite.Sprite):
 	MAX_FORWARD_SPEED = 20
@@ -125,7 +126,6 @@ def game_loop():
 			elif event.key == K_w: bike.k_up = down * 2
 			elif event.key == K_s: bike.k_down = down * -2
 			
-			print(bike.rad)
 			
 			# Reset
 			if event.key == K_r: 
@@ -136,15 +136,13 @@ def game_loop():
 				# Projectile test
 				ball.k_up = 10
 				
+			# Could make a mine? Set up collision detection if bike runs over it
 			if event.key == K_q:
 				ball.position = (bike.position)
 				ball.speed = 0	
 				ball.k_up = 0
-	
-
-				
+				print(ball.position)
 		
-				
 				
 			# Car render
 				car_group.update(time)
