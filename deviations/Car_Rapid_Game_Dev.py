@@ -5,10 +5,16 @@
 import pygame, math, sys, random
 from pygame.locals import *
 #
-display_height = 800
 display_width = 1280
+display_height = 800
+
+HALF_WIDTH = int(display_width / 2)
+HALF_HEIGHT = int(display_height / 2)
 # Sets size of screen
-gameDisplay = pygame.display.set_mode((display_width, display_height))
+screen = pygame.display.set_mode((display_width, display_height))
+
+FLAGS = 0
+CAMERA_SLACK = 30
 
 # Initialises clock
 clock = pygame.time.Clock()
@@ -17,22 +23,44 @@ clock = pygame.time.Clock()
 white = (255,255,255)
 black = (0,0,0)
 
+class Entity(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        
+class Camera(object):
+    def __init__(self, camera_func, width, height):
+        self.camera_func = camera_func
+        self.state = Rect(0, 0, width, height)
 
+    def apply(self, target):
+        return target.rect.move(self.state.topleft)
 
-class VehicleSprite(pygame.sprite.Sprite):
+    def update(self, target):
+        self.state = self.camera_func(self.state, target.rect)
+
+def simple_camera(camera, target_rect):
+    l, t, _, _ = target_rect
+    _, _, w, h = camera
+    return Rect(-l+HALF_WIDTH, -t+HALF_HEIGHT, w, h)
+
+class VehicleSprite(Entity):
 	# Creates a vehicle class
-	MAX_FORWARD_SPEED = 15
-	MAX_REVERSE_SPEED = 5
-	ACCELERATION = 20
-	TURN_SPEED = 50
+	MAX_FORWARD_SPEED = 10
+	MAX_REVERSE_SPEED = 2
+	ACCELERATION = 0.05
+	TURN_SPEED = 0.000000000001
 	
-	def __init__(self, image, position):
+	def __init__(self, image, position, x, y):
+		Entity.__init__(self)
+
 		# Creates object instance off
 		pygame.sprite.Sprite.__init__(self)
 		self.src_image = pygame.image.load(image)
 		self.position = position
 		self.speed = self.direction = 0
 		self.k_left = self.k_right = self.k_down = self.k_up = 0
+		self.rect = Rect(x, y, 32, 32)
+
 		
 	def update(self, time):
 		# SIMULATION
@@ -79,18 +107,28 @@ class Projectile(pygame.sprite.Sprite):
 		self.image = pygame.transform.rotate(self.src_image, self.direction)
 		self.rect = self.image.get_rect()
 		self.rect.center = self.position
-
+		
+class Background(pygame.sprite.Sprite):
+    def __init__(self, image_file, location):
+        pygame.sprite.Sprite.__init__(self)  #call Sprite initializer
+        self.image = pygame.image.load(image_file)
+        self.rect = self.image.get_rect()
+        self.rect.left, self.rect.top = location
 
 	
 # CREATE A CAR AND TUN
-rect = gameDisplay.get_rect()
+rect = screen.get_rect()
+
+# Background
+BackGround = Background('/home/pi/gametuts/images/backgrounds/I.png', [0, 0])
+#bkg_group = pygame.sprite.RenderPlain(BackGround)
 
 # Car image load
-car = VehicleSprite('/home/pi/gametuts/images/car_01.png', rect.center)
-car_group = pygame.sprite.RenderPlain(car)
+#car = VehicleSprite('/home/pi/gametuts/images/blueBike2.png', rect.center)
+#car_group = pygame.sprite.RenderPlain(car)
 
 # Bike image load
-bike = VehicleSprite('/home/pi/gametuts/images/blueBike2.png', rect.center)
+bike = VehicleSprite('/home/pi/gametuts/images/BikePixelBig.png', rect.center, 32, 16)
 bike_group = pygame.sprite.RenderPlain(bike)
 
 # Ball image load
@@ -101,27 +139,26 @@ ball_group = pygame.sprite.RenderPlain(ball)
 def game_loop():
 	
 	# Defining obstacle start parameters
-	ob_startx = random.randrange(0, display_width)
-	ob_starty = -600
-	ob_speed = 10
-	ob_width = random.randrange(30, 100)
-	ob_height = random.randrange(30, 100)
+	global cameraX, cameraY
+
+	camera = Camera(simple_camera, display_width, display_height)
+
 	
 	while 1:
 		#USER INPUT
 		# Sets frame rate
-		time = clock.tick(30)
+		time = clock.tick(60)
 		for event in pygame.event.get():
 			if not hasattr(event, 'key'): continue
 			down = event.type == KEYDOWN
 			# Car Input (Player 1)
-			if event.key == K_RIGHT: car.k_right = down * -5
-			elif event.key == K_LEFT: car.k_left = down * 5
-			elif event.key == K_UP: car.k_up = down * 2
-			elif event.key == K_DOWN: car.k_down = down * -2
+			#if event.key == K_RIGHT: BackGround.k_right = down * 5
+			#elif event.key == K_LEFT: BackGround.k_left = down * -5
+			#elif event.key == K_UP: BackGround.k_up = down * -2
+			#elif event.key == K_DOWN: BackGround.k_down = down * 2
 			
 			# Bike Input (Player 2)
-			elif event.key == K_d: bike.k_right = down * -5
+			if event.key == K_d: bike.k_right = down * -5
 			elif event.key == K_a: bike.k_left = down * 5
 			elif event.key == K_w: bike.k_up = down * 2
 			elif event.key == K_s: bike.k_down = down * -2
@@ -143,11 +180,6 @@ def game_loop():
 				ball.k_up = 0
 				print(ball.position)
 		
-				
-			# Car render
-				car_group.update(time)
-				car_group.draw(gameDisplay)
-				
 			
 			# Quit
 			elif event.key == K_ESCAPE: sys.exit(0)
@@ -155,18 +187,24 @@ def game_loop():
 		#RENDERING
 		
 		# Game background
-		gameDisplay.fill((white))
+		screen.fill([255, 255, 255])
+		# screen.blit(BackGround.image, BackGround.rect)
+			
+		# Camera guess
+		camera.update(bike)
 		
-		
+		# update player, draw everything else
+        bike_group.update(time)
+        for e in entities:
+            screen.blit(e.image, camera.apply(e))
+
 		# Bike render
-		bike_group.update(time)
-		bike_group.draw(gameDisplay)
+		#bike_group.update(time)
+		#bike_group.draw(screen)
 		
 		# Projectile
-		ball_group.update(time)
-		ball_group.draw(gameDisplay)
-
-		
+		#ball_group.update(time)
+		#ball_group.draw(screen)
 		
 		pygame.display.flip()
 
