@@ -103,6 +103,17 @@ class Projectile(Entity):
 		self.rect = self.image.get_rect()
 		self.rect.center = self.position
 		
+class Obstacle(Entity):
+	def __init__(self, position):
+		pygame.sprite.Sprite.__init__(self)
+		self.src_image = pygame.image.load(image)
+		self.position = position
+		self.image = pygame.Surface((30, 30), pygame.SRCALPHA)
+		
+	def update(self, time):
+		self.position = [random.randrange(0, BKG_W), random.randrange(0, BKG_H)]
+		
+		
         
 def speedometer(count):
 	font = pygame.font.SysFont(None, 25)

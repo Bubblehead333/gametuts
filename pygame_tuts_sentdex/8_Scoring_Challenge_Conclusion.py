@@ -17,12 +17,14 @@ green = (0,255,0)
 blue = (0,0,255)
 road = (160, 160, 160)
 
+obstacles = []
+
 
 gameDisplay = pygame.display.set_mode((display_width,display_height))
 pygame.display.set_caption('Race Game')
 clock = pygame.time.Clock()
 
-carImg = pygame.image.load("C:/Users/jlyell/PycharmProjects/gametuts/images/car_01.png")
+carImg = pygame.image.load("/home/pi/gametuts/images/car_01.png")
 
 def obstacles_avoided(count):
 	font = pygame.font.SysFont(None, 25)
