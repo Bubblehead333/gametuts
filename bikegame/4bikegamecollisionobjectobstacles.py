@@ -32,12 +32,12 @@ PLAYAREA.fill(LIGHT_GREY)
 OBSTACLE = pygame.Surface((30, 30), pygame.SRCALPHA)
 OBSTACLE.fill((200, 120, 20))
 
-bkg_img = pygame.image.load('/home/pi/gametuts/images/backgrounds/circ3.png').convert_alpha()
+#bkg_img = pygame.image.load('/home/pi/gametuts/images/backgrounds/circ3.bmp').convert_alpha()
 bike_img = pygame.image.load('/home/pi/gametuts/images/BikePixelw.bmp').convert_alpha()
 laser_img = pygame.image.load('/home/pi/gametuts/images/laser.bmp').convert_alpha()
-crate_img = pygame.image.load('/home/pi/gametuts/images/crate1.png').convert_alpha()
+crate_img = pygame.image.load('/home/pi/gametuts/images/crate1.bmp').convert_alpha()
 
-power_img = pygame.image.load('/home/pi/gametuts/images/crate2.png').convert_alpha()
+power_img = pygame.image.load('/home/pi/gametuts/images/crate2.bmp').convert_alpha()
 
 
 
@@ -93,11 +93,11 @@ class Laser(Entity):
 		
 	def update(self, time):
 		# SIMULATION
-		x, y = self.position
+		self.x, self.y = self.position
 		self.rad = self.direction * math.pi / 180
-		x += (-self.speed)*math.sin(self.rad)
-		y += (-self.speed)*math.cos(self.rad)
-		self.position = (x, y)
+		self.x += (-self.speed)*math.sin(self.rad)
+		self.y += (-self.speed)*math.cos(self.rad)
+		self.position = (self.x, self.y)
 		self.image = pygame.transform.rotate(self.src_image, self.direction)
 		self.rect = self.image.get_rect()
 		self.rect.center = self.position
@@ -114,41 +114,43 @@ class Obstacle(Entity):
         x, y = self.position
        
     def update(self, time):
-		x, y = self.position
-		self.image = crate_img
-		self.rect = self.image.get_rect(center=self.position)	
+        x, y = self.position
+        self.image = crate_img
+        self.rect = self.image.get_rect(center=self.position)	
 		
 class Powerup(Entity):
-    def __init__(self, image, position):
+    def __init__(self, image, x, y):
         Entity.__init__(self)
         self.src_image = image
         self.image = image
-        self.position = position
+        self.x = x
+        self.y = y
+        self.position = (self.x, self.y)
         self.width = self.height = 32
-        x, y = self.position
        
     def update(self, time):
-		x, y = self.position
-		self.image = crate_img
-		self.rect = self.image.get_rect(center=self.position)	
+        x, y = self.position
+        self.image = crate_img
+        self.rect = self.image.get_rect(center=self.position)	
 		
         
 def speedometer(count):
-	font = pygame.font.SysFont(None, 25)
-	text = font.render("Speed: "+ str(10*count) + " mph", True, WHITE)
-	screen.blit(text, (SCREEN_WIDTH - 150, SCREEN_HEIGHT - 50))
+    font = pygame.font.SysFont(None, 25)
+    text = font.render("Speed: "+ str(10*count) + " mph", True, WHITE)
+    screen.blit(text, (SCREEN_WIDTH - 150, SCREEN_HEIGHT - 50))
 	
 def game_loop():
 	
     bike = VehicleSprite(bike_img, rect.center)
-    power = Powerup(power_img, (200, 200))
+    power = Powerup(power_img, 200, 200)
     
     lasers = []
     crates = []
-    num = 100
+    num = 1
     while num > 0:
         crates.append(Obstacle())
         num = num - 1
+    print(crates[0].position)
         
     power_group = pygame.sprite.Group(power)
     
@@ -198,9 +200,9 @@ def game_loop():
           
         # Collision Frame
         if bike.position.x > BKG_W or bike.position.x < 0:
-			bike.speed = 0
+            bike.speed = 0
         if bike.position.y > BKG_H or bike.position.y < 0:
-			bike.speed = 0
+            bike.speed = 0
 		
 		
 			
@@ -217,25 +219,29 @@ def game_loop():
 
         for sprite in all_sprites:
             for crate in crates:
-				crate.update(time)
+                crate.update(time)
             for crate in crates:
                 screen.blit(power_img, crate.position+camera)
+                # Collision with crate
+                if ((bike.position.x >= crate.x) and bike.position.x < (crate.x + crate.width) or (bike.position.x + bike.width) > crate.x and bike.position.x + bike.width < crate.x + crate.width) and ((bike.position.y > crate.y) and bike.position.y < (crate.y + crate.height) or (bike.position.y + bike.height) > crate.y and (bike.position.y + bike.height) < (crate.y + crate.height)):
+                #(bike.position.y > crate.y and bike.position.y < crate.y + crate.height or bike.position.y + bike.height > crate.y and bike.position.y + bike.height < crate.y + crate.height):
+					print("Hit")
+					bike.speed = 0
+
             for laser in lasers:
-				laser.update(time)
+                laser.update(time)
+                if ((laser.position.x >= crate.x) and laser.position.x < (crate.x + crate.width) or (laser.position.x + bike.width) > crate.x and laser.position.x + laser.width < crate.x + crate.width) and ((laser.position.y > crate.y) and laser.position.y < (crate.y + crate.height) or (laser.position.y + laser.height) > crate.y and (laser.position.y + laser.height) < (crate.y + crate.height)):
+                    print('Pew!')
             for laser in lasers:
                 screen.blit(laser.image, laser.position+camera)
-                print laser.direction
                 
-			
-
                 
             screen.blit(sprite.image, sprite.rect.topleft+camera)
+            
+        
 
         speedometer(bike.speed)
-        # Collision with crate
-        # x > ob_startx and x < ob_startx + ob_width or x + car_width > ob_startx and x + car_width < ob_startx + ob_width:
-        if (bike.position.x > power.x and bike.position.x < crate.x + crate.width or bike.position.x + bike.width > crate.x and bike.position.x + bike.width < crate.x + crate.width) and (bike.position.y > crate.y and bike.position.y < crate.y + crate.height or bike.position.y + bike.height > crate.y and bike.position.y + bike.height < crate.y + crate.height):
-			print("Hit")
+        
 
         pygame.display.flip()
 
